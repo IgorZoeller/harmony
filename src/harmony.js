@@ -3,6 +3,7 @@ console.clear();
 require('dotenv').config()
 const Client  = require('./structures/Client.js');
 const Command = require('./structures/Command.js');
+const fs = require('fs');
 
 const client = new Client();
 
