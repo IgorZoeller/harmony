@@ -24,12 +24,16 @@ module.exports = new Command({
 
 async function playSound(message, args, client) {
     
-    const sounds = [];
-    sound_assets.forEach(asset => {
-        if (path.basename(asset).startsWith(args[1])) {
-            sounds.push(asset);
-        }
-    })
+    var sounds = [];
+    if (args[1]) {
+        sound_assets.forEach(asset => {
+            if (path.basename(asset).startsWith(args[1])) {
+                sounds.push(asset);
+            }
+        })
+    } else {
+        sounds = sound_assets;
+    }
     
     const random_pick = sounds[Math.floor(Math.random()*sounds.length)]
 
@@ -44,22 +48,16 @@ async function playSound(message, args, client) {
     const subscription = connection.subscribe(player);
 
     connection.on(VoiceConnectionStatus.Ready, () => {
-        console.log(`The connection has entered the Ready state - ready to play ${random_pick}`);
+        console.log(`Playing sound effect ${path.basename(random_pick)}`);
 
-        const debug_path = (random_pick);
-        console.log(debug_path);
-        const resource = createAudioResource(debug_path);
+        const resource = createAudioResource(random_pick);
 
         player.play(resource);
         player.on("error", error => {
             console.error(`Error: ${error.message} with resource ${error.resource.metadata.title}`);
         });
-        player.on(AudioPlayerStatus.Playing, () => {
-            console.log("Audio should be playing");
-        })
-
+        
         player.on(AudioPlayerStatus.Idle, () => {
-            console.log("Audio player not playing.")
             if (subscription) {
                 subscription.unsubscribe();
                 connection.disconnect();
