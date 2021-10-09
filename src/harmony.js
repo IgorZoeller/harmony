@@ -4,7 +4,7 @@ require("dotenv").config();
 const Client  = require("./structures/Client.js");
 const Command = require("./structures/Command.js");
 const fs = require("fs");
-const config = require("./config/config.json")
+const config = require("./config/config.json");
 
 const client = new Client();
 
@@ -26,7 +26,7 @@ client.on("messageCreate", message => {
     if (!message.content.startsWith(config.prefix)) return;
 
     const args = message.content.substring(config.prefix.length).split(/ +/);
-    const command = client.commands.find(cmd => cmd.name == args[0])
+    const command = client.commands.find(cmd => cmd.name == args[0]);
     if (!command) return console.log(`${args[0]} is not a supported command.`);
     command.run(message, args, client);
 })
