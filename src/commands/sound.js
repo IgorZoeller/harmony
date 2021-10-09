@@ -1,6 +1,6 @@
 const Command = require("../structures/Command.js");
 const path = require("path");
-const { joinVoiceChannel , VoiceConnectionStatus, createAudioPlayer, createAudioResource, AudioPlayerStatus } = require('@discordjs/voice');
+const AudioPlayer = require('../structures/AudioPlayer.js');
 
 const root = path.dirname(require.main.filename);
 const fs = require("fs");
