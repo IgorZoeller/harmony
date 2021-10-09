@@ -2,8 +2,8 @@
 
 node_modules/
 
-package-lock.json
-
 *.txt
 
 src/assets/
+
+*.png

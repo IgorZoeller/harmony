@@ -3,7 +3,6 @@ const path = require("path");
 const { joinVoiceChannel , VoiceConnectionStatus, createAudioPlayer, createAudioResource, AudioPlayerStatus } = require('@discordjs/voice');
 
 const root = path.dirname(require.main.filename);
-console.log(root);
 const fs = require("fs");
 
 const sound_assets = [];
@@ -34,6 +33,10 @@ async function playSound(message, args, client) {
     } else {
         sounds = sound_assets;
     }
+
+    if (sounds.length == 0) {
+        return message.reply(`No sound effects corresponding to \"${args[1]}\"`);
+    }
     
     const random_pick = sounds[Math.floor(Math.random()*sounds.length)]
 
@@ -56,7 +59,7 @@ async function playSound(message, args, client) {
         player.on("error", error => {
             console.error(`Error: ${error.message} with resource ${error.resource.metadata.title}`);
         });
-        
+
         player.on(AudioPlayerStatus.Idle, () => {
             if (subscription) {
                 subscription.unsubscribe();
