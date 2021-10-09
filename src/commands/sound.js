@@ -9,7 +9,7 @@ const fs = require("fs");
 const sound_assets = [];
 fs.readdirSync("./src/assets").forEach(asset => {
     const asset_path = path.join(root, `./assets/${asset}`);
-    sound_assets.push(path);
+    sound_assets.push(asset_path);
     console.log(`Loaded ${asset_path} sound asset.`);
 })
 
@@ -32,7 +32,6 @@ async function playSound(message, args, client) {
     })
     
     const random_pick = sounds[Math.floor(Math.random()*sounds.length)]
-
 
     const channel = message.member.voice.channel;
 
