@@ -1,6 +1,6 @@
 const Command = require("../structures/Command.js");
 const path = require("path");
-const AudioPlayer = require('../structures/AudioPlayer.js');
+const { joinVoiceChannel, VoiceConnectionStatus, createAudioResource, AudioPlayerStatus } = require('@discordjs/voice');
 
 const root = path.dirname(require.main.filename);
 const fs = require("fs");
@@ -11,8 +11,6 @@ fs.readdirSync("./src/assets").forEach(asset => {
     sound_assets.push(asset_path);
     console.log(`Loaded ${asset_path} sound asset.`);
 })
-
-const player = createAudioPlayer();
 
 module.exports = new Command({
     name: "sound",
@@ -48,19 +46,19 @@ async function playSound(message, args, client) {
         adapterCreator: channel.guild.voiceAdapterCreator,
     });
 
-    const subscription = connection.subscribe(player);
+    const subscription = connection.subscribe(client.audio.player);
 
-    connection.on(VoiceConnectionStatus.Ready, () => {
+    connection.once(VoiceConnectionStatus.Ready, () => {
         console.log(`Playing sound effect ${path.basename(random_pick)}`);
 
         const resource = createAudioResource(random_pick);
 
-        player.play(resource);
-        player.on("error", error => {
+        client.audio.player.play(resource);
+        client.audio.player.on("error", error => {
             console.error(`Error: ${error.message} with resource ${error.resource.metadata.title}`);
         });
 
-        player.on(AudioPlayerStatus.Idle, () => {
+        client.audio.player.once(AudioPlayerStatus.Idle, () => {
             if (subscription) {
                 subscription.unsubscribe();
                 connection.disconnect();
