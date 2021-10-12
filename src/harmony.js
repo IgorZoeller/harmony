@@ -3,26 +3,15 @@ console.clear();
 require("dotenv").config();
 const Client  = require("./structures/Client.js");
 const Command = require("./structures/Command.js");
-const fs = require("fs");
+
 const config = require("./config/config.json");
 
 const client = new Client();
+client.start(process.env.CLIENT_TOKEN)
 
 let awaitingCommand = true;
 
-fs.readdirSync("./src/commands")
-    .filter(file => file.endsWith(".js"))
-    .forEach(file => {
-        /**
-         * @type {Command}
-         */
-        const command = require(`./commands/${file}`);
-        console.log(`Command ${command.name} now in Harmony.`);
-        client.commands.set(command.name, command);
-})
-
 client.on("ready", () => console.log("Harmonic convergence is upon us!"));
-client.login(process.env.CLIENT_TOKEN);
 
 client.on("messageCreate", message => {
     if (!message.content.startsWith(config.prefix)) return;

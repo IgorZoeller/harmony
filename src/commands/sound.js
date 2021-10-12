@@ -21,7 +21,7 @@ module.exports = new Command({
 
 async function playSound(message, args, client) {
     
-    var sounds = [];
+    let sounds = [];
     if (args[1]) {
         sound_assets.forEach(asset => {
             if (path.basename(asset).startsWith(args[1])) {
