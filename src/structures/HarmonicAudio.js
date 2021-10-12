@@ -78,7 +78,8 @@ class HarmonicAudio {
         }
     }
 
-    async startPlaying(resource) {
+    async startPlaying() {
+        const resource = this.queue.peek()
         this.player.play(resource);
         try {
             await entersState(this.player, AudioPlayerStatus.Playing, 5_000);
