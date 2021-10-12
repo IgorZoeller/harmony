@@ -31,5 +31,4 @@ client.on("messageCreate", message => {
 
         awaitingCommand = true;
     }
-    
 })

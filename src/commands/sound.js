@@ -40,31 +40,22 @@ async function playSound(message, args, client) {
 
     const channel = message.member.voice.channel;
 
-    const connection = joinVoiceChannel({
-        channelId: channel.id,
-        guildId: channel.guild.id,
-        adapterCreator: channel.guild.voiceAdapterCreator,
+    client.audio.connect(channel);
+    client.audio.subscribe(channel);
+
+    const resource = createAudioResource(random_pick, {
+        metadata: {
+            title: `${path.basename(random_pick)}`
+        }
     });
 
-    const subscription = connection.subscribe(client.audio.player);
-
-    connection.once(VoiceConnectionStatus.Ready, () => {
-        console.log(`Playing sound effect ${path.basename(random_pick)}`);
-
-        const resource = createAudioResource(random_pick);
-
-        client.audio.player.play(resource);
-        client.audio.player.on("error", error => {
-            console.error(`Error: ${error.message} with resource ${error.resource.metadata.title}`);
-        });
-
-        client.audio.player.once(AudioPlayerStatus.Idle, () => {
-            if (subscription) {
-                subscription.unsubscribe();
-                connection.disconnect();
-            }
-        })
-    
+    await client.audio.startPlaying(resource);
+    client.audio.player.on("error", error => {
+        console.error(`Error: ${error.message} with resource ${error.resource.metadata.title}`);
     });
+
+    client.audio.player.once(AudioPlayerStatus.Idle, () => {
+        client.audio.clearConnection(channel.guild.id);
+    })
 
 }
