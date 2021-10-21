@@ -90,21 +90,6 @@ class HarmonicAudio {
         }
     }
 
-    async startPlaying() {
-        const resource = this.queue.peek()
-        this.player.play(resource);
-        try {
-            await entersState(this.player, AudioPlayerStatus.Playing, 5_000);
-            // The player has entered the Playing state within 5 seconds
-            console.log(`Now playing ${resource.metadata.title}`);
-        } catch (error) {
-            // The player has not entered the Playing state and either:
-            // 1) The 'error' event has been emitted and should be handled
-            // 2) 5 seconds have passed
-            console.error(error);
-        } 
-    }
-
 }
 
 module.exports = HarmonicAudio;

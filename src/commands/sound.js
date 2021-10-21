@@ -1,6 +1,6 @@
 const Command = require("../structures/Command.js");
 const path = require("path");
-const { createAudioResource, AudioPlayerStatus } = require("@discordjs/voice");
+const { createAudioResource, AudioPlayerStatus, entersState } = require("@discordjs/voice");
 
 const root = path.dirname(require.main.filename);
 const fs = require("fs");
@@ -63,11 +63,18 @@ async function run(message, args, client) {
 
     client.audio.queue.enqueue(resource);
 
-    await client.audio.startPlaying();
-    
-    client.audio.player.once("error", error => {
-        console.error(`Error: ${error.message} with resource ${error.resource.metadata.title}`);
-    });
+    client.audio.player.play(client.audio.queue.peek())
+
+    try {
+        await entersState(client.audio.player, AudioPlayerStatus.Playing, 5_000);
+        // The player has entered the Playing state within 5 seconds
+        console.log(`Now playing ${resource.metadata.title}`);
+    } catch (error) {
+        // The player has not entered the Playing state and either:
+        // 1) The 'error' event has been emitted and should be handled
+        // 2) 5 seconds have passed
+        console.error(error);
+    }
 
     client.audio.player.once(AudioPlayerStatus.Idle, () => {
         client.audio.queue.dequeue();
