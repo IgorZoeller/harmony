@@ -18,6 +18,7 @@ client.on("messageCreate", message => {
 
     if(awaitingCommand) {
         
+<<<<<<< Updated upstream
         const args = message.content.substring(config.prefix.length).split(/ +/);
         const command = client.commands.find(cmd => cmd.name == args[0]);
         if (!command) return console.log(`${args[0]} is not a supported command.`);
@@ -31,4 +32,12 @@ client.on("messageCreate", message => {
 
         awaitingCommand = true;
     }
+=======
+    try {
+         command.run(message, args, client);
+    } catch (error) {
+         console.log()
+    }
+
+>>>>>>> Stashed changes
 })

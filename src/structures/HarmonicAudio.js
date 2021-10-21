@@ -1,8 +1,8 @@
-const { createAudioPlayer, joinVoiceChannel, getVoiceConnection, PlayerSubscription, AudioPlayerStatus, entersState } = require('@discordjs/voice');
+const { createAudioPlayer, joinVoiceChannel, getVoiceConnection, PlayerSubscription, AudioPlayerStatus, entersState } = require("@discordjs/voice");
 
 const Discord = require("discord.js")
 
-const AudioQueue = require('./Queue.js');
+const AudioQueue = require("./Queue.js");
 
 class HarmonicAudio {
     constructor(options){
@@ -17,6 +17,18 @@ class HarmonicAudio {
          */
         this.subscriptions = new Discord.Collection();
 
+    }
+
+    isConnected(channel) {
+        const channelGuildId = channel.guild.id;
+        const subscription = this.subscriptions.get(channelGuildId);
+        const connection = getVoiceConnection(channelGuildId);
+
+        if (subscription && connection) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
