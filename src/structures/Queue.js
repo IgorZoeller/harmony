@@ -44,22 +44,3 @@ class Queue {
 }
 
 module.exports = Queue;
-
-class AudioQueue extends Queue {
-    constructor(options) {
-        super(options);
-    }
-
-    shuffle(){
-
-        // Durstenfeld shuffle algorithm.
-        for (let i = this.item.length - 1; i > this.headIndex; i--) {
-            const j = Math.floor(Math.random() * (i + 1))
-            [this.item[i], this.item[j]] = [this.item[j], this.item[i]];
-        }
-
-    }
-
-}
-
-module.exports = AudioQueue;

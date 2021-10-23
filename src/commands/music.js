@@ -20,11 +20,7 @@ function run(message, args, client) {
     
     const complements = args.slice(2, args.length);
 
-    if (options[selector].async) {
-        await option(message, complements, client);
-    } else {
-        option(message, complements, client);
-    }
+    option(message, complements, client);
 
 }
 
@@ -55,7 +51,7 @@ const options = {
     play: {
         async: true,
         description: "Plays the audio requested.",
-        method: async function(message, complements, client) {
+        method: async (message, complements, client) => {
         
             const channel = message.member.voice.channel;
     
@@ -64,32 +60,44 @@ const options = {
             if (client.audio.isConnected(channel) == false) {
                 const connect = options["connect"].method;
                 connect(message, complements, client);
-            };
+            }
 
-            const resource = createAudioResource(complements[0], {
+            let resName = "C:\\PersonalProjects\\harmony\\src\\assets\\chatuba-treasure.mp3";
+
+            const new_resource = createAudioResource(resName, {
                 metadata: {
-                    title: `${path.basename(random_pick)}`
+                    title: `${resName}`
                 }
             });
 
-            client.audio.queue.enqueue(resource);
+            client.audio.queue.enqueue(new_resource);
+            message.reply(`${client.audio.queue.length} items in queue.`)
 
-            while (client.audio.queue.length > 0) {
+            if (client.audio.queue.isEmpty) {
+                let current_resource = client.audio.queue.peek();
+                client.audio.player.play(current_resource);
+            } 
 
-                client.audio.player.play(client.audio.queue.peek());
+            client.audio.player.on(AudioPlayerStatus.Idle, (resource = client.audio.queue.peek() ?? null) => {
+                if (resource != null) {
+                    client.audio.player.play(resource);
+                }
+            })
 
-                // try {
-                //     await entersState(client.audio.player, AudioPlayerStatus.Playing, 5_000);
-                //     // The player has entered the Playing state within 5 seconds
-                //     console.log(`Now playing ${resource.metadata.title}`);
-                // } catch (error) {
-                //     // The player has not entered the Playing state and either:
-                //     // 1) The 'error' event has been emitted and should be handled
-                //     // 2) 5 seconds have passed
-                //     console.error(error);
-                // }
+        }
+    },
 
-            }
+    queue: {
+        async: false,
+        description: "Shows all titles in the queue.",
+        method: function(message, complements, client) {
+
+            msgBody = ""
+            client.audio.queue.forEach(item => {
+                msgBody = msgBody + `${item.metadata.title}\n`;
+            });
+
+            message.reply(msgBody);
 
         }
     },

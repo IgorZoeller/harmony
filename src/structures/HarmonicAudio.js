@@ -2,7 +2,27 @@ const { createAudioPlayer, joinVoiceChannel, getVoiceConnection, PlayerSubscript
 
 const Discord = require("discord.js")
 
-const AudioQueue = require("./Queue.js");
+class AudioQueue extends Queue {
+    constructor(options) {
+        super(options);
+    }
+
+    shuffle(){
+
+        // Durstenfeld shuffle algorithm.
+        for (let i = this.item.length - 1; i > this.headIndex; i--) {
+            let j = Math.floor(Math.random() * (i + 1))
+            [this.item[i], this.item[j]] = [this.item[j], this.item[i]];
+        }
+
+    }
+
+    enqueue(item) {
+        super.enqueue(item);
+        // 
+    }
+
+}
 
 class HarmonicAudio {
     constructor(options){
@@ -17,18 +37,6 @@ class HarmonicAudio {
          */
         this.subscriptions = new Discord.Collection();
 
-    }
-
-    isConnected(channel) {
-        const channelGuildId = channel.guild.id;
-        const subscription = this.subscriptions.get(channelGuildId);
-        const connection = getVoiceConnection(channelGuildId);
-
-        if (subscription && connection) {
-            return true;
-        } else {
-            return false;
-        }
     }
 
     /**
