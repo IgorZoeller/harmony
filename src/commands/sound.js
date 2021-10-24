@@ -1,6 +1,6 @@
 const Command = require("../structures/Command.js");
 const path = require("path");
-const { createAudioResource, AudioPlayerStatus } = require('@discordjs/voice');
+const { createAudioResource, AudioPlayerStatus, entersState } = require("@discordjs/voice");
 
 const root = path.dirname(require.main.filename);
 const fs = require("fs");
@@ -15,11 +15,11 @@ fs.readdirSync("./src/assets").forEach(asset => {
 module.exports = new Command({
     name: "sound",
     description: "Plays a short sound effect.",
-    run: playSound,
-    status: playSound 
+    run: run,
+    status: run 
 })
 
-async function playSound(message, args, client) {
+async function run(message, args, client) {
     
     // The Music command has priority on the Sound command
     // and, on top of that, we don't want to flood the audio
@@ -30,7 +30,7 @@ async function playSound(message, args, client) {
         if (queueSize > 1) {
             return message.reply(`Harmonic Audio already has ${queueSize} items on queue!\nWait for it to end or close the queue to play sound effects.`)
         }
-        return message.reply(`Harmonic Audio already has one item on queue!\nWait for it to end or close the queue to play sound effects.`)
+        return message.reply("Harmonic Audio already has one item on queue!\nWait for it to end or close the queue to play sound effects.")
     }
 
     let sounds = [];
@@ -57,21 +57,10 @@ async function playSound(message, args, client) {
 
     const resource = createAudioResource(random_pick, {
         metadata: {
-            title: `${path.basename(random_pick)}`
+            title: `${path.basename(random_pick)}`,
+            type: "SoundEffect"
         }
     });
 
     client.audio.queue.enqueue(resource);
-
-    await client.audio.startPlaying();
-    
-    client.audio.player.once("error", error => {
-        console.error(`Error: ${error.message} with resource ${error.resource.metadata.title}`);
-    });
-
-    client.audio.player.once(AudioPlayerStatus.Idle, () => {
-        client.audio.queue.dequeue();
-        client.audio.clearConnection(channel.guild.id);
-    })
-
 }
