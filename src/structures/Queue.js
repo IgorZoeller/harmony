@@ -32,9 +32,9 @@ class Queue {
         this.tailIndex = 0;
     }
 
-    peek() {
+    peek(i = 0) {
         
-        return this.items[this.headIndex];
+        return this.items[this.headIndex + i];
 
       }
 

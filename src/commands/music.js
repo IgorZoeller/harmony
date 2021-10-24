@@ -1,5 +1,7 @@
 const Command = require("../structures/Command.js");
-const { createAudioResource, AudioPlayerStatus, entersState } = require("@discordjs/voice");
+const fs = require("fs");
+const ytdl = require("ytdl-core")
+const { createAudioResource, AudioPlayerStatus, StreamType } = require("@discordjs/voice");
 
 module.exports = new Command({
     name: "music",
@@ -47,7 +49,7 @@ const options = {
         }
     },
 
-
+    
     play: {
         async: true,
         description: "Plays the audio requested.",
@@ -62,43 +64,53 @@ const options = {
                 connect(message, complements, client);
             }
 
-            let resName = "C:\\PersonalProjects\\harmony\\src\\assets\\chatuba-treasure.mp3";
+            const yt_url = complements[0];
+            let song;
+            let optionalData;
+            if ( ytdl.validateURL(yt_url) ) {
+                const videoID = ytdl.getURLVideoID(yt_url);
+                const basicInfo = await ytdl.getBasicInfo(yt_url);
+                optionalData = {title: basicInfo.videoDetails.title};
+                // Filtering the formats to audio only.
+                const info = await ytdl.getInfo(videoID);
+                let audioFormats = ytdl.filterFormats(info.formats, 'audioonly')
+                const format = ytdl.chooseFormat(audioFormats, { quality: "highestaudio" });
 
-            const new_resource = createAudioResource(resName, {
-                metadata: {
-                    title: `${resName}`,
-                    type: "MusicResource"
+                try {
+                    song = ytdl(yt_url, { format });
+                } catch (error) {
+                    console.error(error);
                 }
-            });
+                
+            } else {
+                return message.reply("Invalid URL. Please try again.")
+            }
+
+            const new_resource = await client.audio.probeAndCreateResource(song, optionalData);
 
             client.audio.queue.enqueue(new_resource);
-            message.reply(`${client.audio.queue.length} items in queue.`)
-
-            // if (client.audio.queue.isEmpty) {
-            //     let current_resource = client.audio.queue.peek();
-            //     client.audio.player.play(current_resource);
-            // } 
-
-            // client.audio.player.on(AudioPlayerStatus.Idle, (resource = client.audio.queue.peek() ?? null) => {
-            //     if (resource != null) {
-            //         client.audio.player.play(resource);
-            //     }
-            // })
+            message.reply(`${client.audio.queue.length} items in queue.`);
 
         }
     },
+
 
     queue: {
         async: false,
         description: "Shows all titles in the queue.",
         method: function(message, complements, client) {
 
-            msgBody = ""
-            client.audio.queue.forEach(item => {
-                msgBody = msgBody + `${item.metadata.title}\n`;
-            });
+            let messageBody = "";
 
-            message.reply(msgBody);
+            for (let i = 0; i < client.audio.queue.length; i++) {
+                const item = client.audio.queue.peek(i);
+                messageBody = messageBody + (item.metadata.title + "\n");
+                console.log(item.metadata.title);             
+            }
+
+            let queueMessage = ["\`\`\`", messageBody, "\`\`\`"].join("");
+
+            message.reply(queueMessage);
 
         }
     },
@@ -107,34 +119,59 @@ const options = {
     pause: {
         async: false,
         description: "Pauses the currently active Queue",
-        method: function(message, complements, client) {}
+        method: function(message, complements, client) {
+            client.audio.player.pause();
+            debugMessage = "Queue paused."
+            message.reply(debugMessage);
+            console.log(debugMessage);            
+        }
     },
 
     resume: {
         async: false,
         description: "Resumes the currently active Queue",
-        method: function(message, complements, client) {}
+        method: function(message, complements, client) {
+            client.audio.player.unpause();
+            debugMessage = "Queue resumed."
+            message.reply(debugMessage);
+            console.log(debugMessage);
+        }
     },
 
 
     skip: {
         async: false,
         description: "Skips to the next audio resource in Queue",
-        method: function(message, complements, client) {}
+        method: function(message, complements, client) {
+            debugMessage = `Skipping the next ${complements[0]} songs.`;
+            message.reply(debugMessage);
+            console.log(debugMessage);
+            for (let i = 0; i < int(complements[0]); i++) {
+                client.audio.queue.dequeue();
+            }
+            client.audio.player.pause();
+            client.audio.player.emit(AudioPlayerStatus.Idle);
+        }
     },
 
 
     shuffle: {
         async: false,
         description: "Shuffles the Queue",
-        method: function(message, complements, client) {}
+        method: function(message, complements, client) {
+            client.audio.queue.shuffle();
+            const showQueue = options["queue"].method;
+            showQueue(message, complements, client);
+        }
     },
 
 
     clear: {
         async: false,
         description: "Clears all audio resources at the Queue",
-        method: function(message, complements, client) {}
+        method: function(message, complements, client) {
+            client.audio.queue.clear();
+        }
     },
 
 

@@ -2,7 +2,6 @@ console.clear();
 
 require("dotenv").config();
 const Client  = require("./structures/Client.js");
-const Command = require("./structures/Command.js");
 
 const config = require("./config/config.json");
 
