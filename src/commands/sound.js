@@ -63,23 +63,4 @@ async function run(message, args, client) {
     });
 
     client.audio.queue.enqueue(resource);
-
-    client.audio.player.play(client.audio.queue.peek())
-
-    try {
-        await entersState(client.audio.player, AudioPlayerStatus.Playing, 5_000);
-        // The player has entered the Playing state within 5 seconds
-        console.log(`Now playing ${resource.metadata.title}`);
-    } catch (error) {
-        // The player has not entered the Playing state and either:
-        // 1) The 'error' event has been emitted and should be handled
-        // 2) 5 seconds have passed
-        console.error(error);
-    }
-
-    client.audio.player.once(AudioPlayerStatus.Idle, () => {
-        client.audio.queue.dequeue();
-        client.audio.clearConnection(channel.guild.id);
-    })
-
 }
