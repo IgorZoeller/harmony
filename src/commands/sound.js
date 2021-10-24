@@ -57,7 +57,8 @@ async function run(message, args, client) {
 
     const resource = createAudioResource(random_pick, {
         metadata: {
-            title: `${path.basename(random_pick)}`
+            title: `${path.basename(random_pick)}`,
+            type: "SoundEffect"
         }
     });
 

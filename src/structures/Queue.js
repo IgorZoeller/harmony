@@ -1,4 +1,3 @@
-
 class Queue {
     constructor(options) {
 
@@ -22,6 +21,15 @@ class Queue {
         this.headIndex++;
         return item;
 
+    }
+
+    /**
+     * Clears the Queue
+     */
+    clear() {
+        this.items = {};
+        this.headIndex = 0;
+        this.tailIndex = 0;
     }
 
     peek() {

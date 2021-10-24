@@ -66,23 +66,24 @@ const options = {
 
             const new_resource = createAudioResource(resName, {
                 metadata: {
-                    title: `${resName}`
+                    title: `${resName}`,
+                    type: "MusicResource"
                 }
             });
 
             client.audio.queue.enqueue(new_resource);
             message.reply(`${client.audio.queue.length} items in queue.`)
 
-            if (client.audio.queue.isEmpty) {
-                let current_resource = client.audio.queue.peek();
-                client.audio.player.play(current_resource);
-            } 
+            // if (client.audio.queue.isEmpty) {
+            //     let current_resource = client.audio.queue.peek();
+            //     client.audio.player.play(current_resource);
+            // } 
 
-            client.audio.player.on(AudioPlayerStatus.Idle, (resource = client.audio.queue.peek() ?? null) => {
-                if (resource != null) {
-                    client.audio.player.play(resource);
-                }
-            })
+            // client.audio.player.on(AudioPlayerStatus.Idle, (resource = client.audio.queue.peek() ?? null) => {
+            //     if (resource != null) {
+            //         client.audio.player.play(resource);
+            //     }
+            // })
 
         }
     },
@@ -145,6 +146,7 @@ const options = {
 
             if (client.audio.isConnected(channel)) {
                 client.audio.clearConnection(channel.guild.id);
+                client.audio.queue.clear();
             } else {
                 console.log(`Attempted to disconnect from channel ${channel.guild.id} but wasn't connected in the first place.`)
             }
