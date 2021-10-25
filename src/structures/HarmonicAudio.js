@@ -1,7 +1,8 @@
-const { createAudioPlayer, joinVoiceChannel, getVoiceConnection, PlayerSubscription, AudioPlayerStatus, entersState, demuxProbe, createAudioResource } = require("@discordjs/voice");
+const { createAudioPlayer, joinVoiceChannel, getVoiceConnection, PlayerSubscription, AudioPlayerStatus, entersState, demuxProbe, createAudioResource, AudioResource } = require("@discordjs/voice");
 const EventEmitter = require('events');
 const Queue = require("./Queue.js")
-const Discord = require("discord.js")
+const Discord = require("discord.js");
+const fs = require("fs");
 
 class AudioQueue extends Queue {
     constructor(options) {
@@ -134,12 +135,15 @@ class HarmonicAudio {
         // An AudioPlayer will always emit an "error" event with a .resource property
         this.player.on('error', error => {
             console.error('Error:', error.message, 'with track', error.resource.metadata.title);
+            this.logError(error.resource, "HarmonicAudioError.log")
         });
 
     }
 
     async probeAndCreateResource(readableStream, optionalData) {
         const { stream, type } = await demuxProbe(readableStream);
+        // Debug
+        console.log(`Probing detected type: ${type}`);
         return createAudioResource(stream, {metadata: { inputType: type, ...optionalData }});
     }
 
@@ -213,6 +217,23 @@ class HarmonicAudio {
             connection.disconnect();
         }
     }
+
+    /**
+     * 
+     * @param {AudioResource} resource
+     * @param {string} errorFile
+     */
+    logError(resource, errorFile) {
+        const error_time = new Date().toString();
+        console.log(error_time);
+        console.log(resource);
+        let errorFileWS = fs.createWriteStream(errorFile, { flags: "a" });
+        errorFileWS.write(error_time + "\n");
+        errorFileWS.write("edges 0 type: " + JSON.stringify(resource.edges[0].type) + "\n");
+        errorFileWS.write("edges 1 type: " + JSON.stringify(resource.edges[1].type) + "\n");
+        errorFileWS.write("metadata: "     + JSON.stringify(resource.metadata, null, 2) + "\n");
+        errorFileWS.end();
+}
 
 }
 

@@ -2,6 +2,7 @@ const Command = require("../structures/Command.js");
 const fs = require("fs");
 const ytdl = require("ytdl-core")
 const { createAudioResource, AudioPlayerStatus, StreamType } = require("@discordjs/voice");
+const { stringify } = require("querystring");
 
 module.exports = new Command({
     name: "music",
@@ -143,12 +144,21 @@ const options = {
         async: false,
         description: "Skips to the next audio resource in Queue",
         method: function(message, complements, client) {
-            debugMessage = `Skipping the next ${complements[0]} songs.`;
+            const songsToSkip = int(complements[0]) ?? 1;
+            let debugMessage;
+
+            if (songsToSkip == 1) {
+                debugMessage = `Skipping the next song.`;
+            } else if (songsToSkip > 1) {
+                debugMessage = `Skipping the next ${songsToSkip} songs.`;
+            }
+
             message.reply(debugMessage);
             console.log(debugMessage);
-            for (let i = 0; i < int(complements[0]); i++) {
+            for (let i = 0; i < songsToSkip; i++) {
                 client.audio.queue.dequeue();
             }
+
             client.audio.player.pause();
             client.audio.player.emit(AudioPlayerStatus.Idle);
         }
