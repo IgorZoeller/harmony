@@ -117,6 +117,12 @@ class HarmonicAudio {
                 // an error or because it was already played before, recreate the
                 // Audio Resource and try again.
                 this.player.play(currentResource);
+
+                // DEBUG ONLY
+                currentResource.playStream.on('end', () => {
+                    console.log(currentResource.playStream._readableState.errored);
+                });
+
                 try {
                     await entersState(this.player, AudioPlayerStatus.Playing, 5_000);
                     // The player has entered the Playing state within 5 seconds
@@ -135,10 +141,12 @@ class HarmonicAudio {
         // An AudioPlayer will always emit an "error" event with a .resource property
         this.player.on('error', error => {
             console.error('Error:', error.message, 'with track', error.resource.metadata.title);
-            this.logError(error.resource, "HarmonicAudioError.log")
+            //this.logError(error, "HarmonicAudioError.log")
         });
 
     }
+
+    // End of State Machine.d
 
     async probeAndCreateResource(readableStream, optionalData) {
         const { stream, type } = await demuxProbe(readableStream);
@@ -223,15 +231,16 @@ class HarmonicAudio {
      * @param {AudioResource} resource
      * @param {string} errorFile
      */
-    logError(resource, errorFile) {
+    logError(error, errorFile) {
         const error_time = new Date().toString();
         console.log(error_time);
-        console.log(resource);
+        console.log(error);
+        console.log(error.resource);
         let errorFileWS = fs.createWriteStream(errorFile, { flags: "a" });
         errorFileWS.write(error_time + "\n");
-        errorFileWS.write("edges 0 type: " + JSON.stringify(resource.edges[0].type) + "\n");
-        errorFileWS.write("edges 1 type: " + JSON.stringify(resource.edges[1].type) + "\n");
-        errorFileWS.write("metadata: "     + JSON.stringify(resource.metadata, null, 2) + "\n");
+        errorFileWS.write("edges 0 type: " + JSON.stringify(error.resource.edges[0].type) + "\n");
+        errorFileWS.write("edges 1 type: " + JSON.stringify(error.resource.edges[1].type) + "\n");
+        errorFileWS.write("metadata: "     + JSON.stringify(error.resource.metadata, null, 2) + "\n");
         errorFileWS.end();
 }
 

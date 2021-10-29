@@ -1,7 +1,7 @@
 const Command = require("../structures/Command.js");
 const fs = require("fs");
 const ytdl = require("ytdl-core")
-const { createAudioResource, AudioPlayerStatus, StreamType } = require("@discordjs/voice");
+const { AudioResource, AudioPlayerStatus, StreamType } = require("@discordjs/voice");
 const { stringify } = require("querystring");
 
 module.exports = new Command({
@@ -75,7 +75,7 @@ const options = {
                 // Filtering the formats to audio only.
                 const info = await ytdl.getInfo(videoID);
                 let audioFormats = ytdl.filterFormats(info.formats, 'audioonly')
-                const format = ytdl.chooseFormat(audioFormats, { quality: "highestaudio" });
+                let format = ytdl.chooseFormat(audioFormats, { quality: "highestaudio" });
 
                 try {
                     song = ytdl(yt_url, { format });
