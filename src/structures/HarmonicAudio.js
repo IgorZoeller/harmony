@@ -119,8 +119,8 @@ class HarmonicAudio {
                 this.player.play(currentResource);
 
                 // DEBUG ONLY
-                currentResource.playStream.on('end', () => {
-                    console.log(currentResource.playStream._readableState.errored);
+                currentResource.playStream.on('end', (reason) => {
+                    console.log(currentResource.playStream._events.error);
                 });
 
                 try {
