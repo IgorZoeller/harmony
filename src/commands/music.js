@@ -37,6 +37,14 @@ function retrieveStatus(message, args, client) {
 
 const options = {
 
+    test: {
+        async: false,
+        description: "test",
+        method: function(message, complements, client) {
+
+        }
+    },
+    
     connect: {
         async: false,
         description: "Connects to the user current voice channel.",
@@ -78,19 +86,22 @@ const options = {
                 let format = ytdl.chooseFormat(audioFormats, { quality: "highestaudio" });
 
                 try {
-                    song = ytdl(yt_url, { format });
+                    song = ytdl(yt_url, {
+                        format,
+                        highWaterMark: 1<<25
+                    });
                 } catch (error) {
                     console.error(error);
                 }
-                
+
             } else {
                 return message.reply("Invalid URL. Please try again.")
             }
 
             const new_resource = await client.audio.probeAndCreateResource(song, optionalData);
 
-            client.audio.queue.enqueue(new_resource);
-            message.reply(`${client.audio.queue.length} items in queue.`);
+            const queueLength = client.audio.queue.enqueue(new_resource);
+            message.reply(`${queueLength} items in queue.`);
 
         }
     },
@@ -101,12 +112,11 @@ const options = {
         description: "Shows all titles in the queue.",
         method: function(message, complements, client) {
 
-            let messageBody = "";
+            let messageBody = "*>*" + client.audio.queue.currentTrack.metadata.title + "\n";
 
             for (let i = 0; i < client.audio.queue.length; i++) {
                 const item = client.audio.queue.peek(i);
                 messageBody = messageBody + (item.metadata.title + "\n");
-                console.log(item.metadata.title);             
             }
 
             let queueMessage = ["\`\`\`", messageBody, "\`\`\`"].join("");
@@ -195,7 +205,7 @@ const options = {
                 client.audio.clearConnection(channel.guild.id);
                 client.audio.queue.clear();
             } else {
-                console.log(`Attempted to disconnect from channel ${channel.guild.id} but wasn't connected in the first place.`)
+                console.log(`Attempted to disconnect from channel ${channel.guild.id} but I wasn't connected in the first place.`)
             }
         }
     },
