@@ -21,13 +21,10 @@ class AudioQueue extends Queue {
 
     }
 
-    shuffle(){
+    async shuffle(){
         console.log("Will shuffle queue.");
         // Durstenfeld shuffle algorithm.
-        // The +1 to the headIndex is a TEMPORARY fix. TO-DO: when the resource
-        // is not playable, either because of an error or because it was already
-        // played before, recreate the Audio Resource and try again.
-        for (let i = this.headIndex + (this.length - 1); i > this.headIndex + 1; i--) {
+        for (let i = this.headIndex + (this.length - 1); i > this.headIndex; i--) {
             let j = Math.floor(Math.random() * (i + 1))
             [this.items[i], this.items[j]] = [this.items[j], this.items[i]];
         }
@@ -53,6 +50,7 @@ class AudioQueue extends Queue {
         if (this.isEmpty) {
             this.QueueStatus.emit(AudioQueueStatus.Empty);
             this.status = AudioQueueStatus.Empty;
+            super.clear();
         }
         return this.currentTrack;
     }
@@ -70,7 +68,7 @@ class AudioQueue extends Queue {
 
 /**
  * @todo When the resource is not playable, either because of an error or because it was already played before, recreate the Audio Resource and try again.
- * @todo Remake State machine, but now based on AudioQueueStatus
+ * @todo Remake State machine, but now based on QueueEvents
  */
 class HarmonicAudio {
     constructor(options){
@@ -226,7 +224,6 @@ class HarmonicAudio {
         const error_time = new Date().toString();
         console.log(error_time);
         console.log(error);
-        console.log(error.resource);
         let errorFileWS = fs.createWriteStream(errorFile, { flags: "a" });
         errorFileWS.write(error_time + "\n");
         errorFileWS.write("edges 0 type: " + JSON.stringify(error.resource.edges[0].type) + "\n");

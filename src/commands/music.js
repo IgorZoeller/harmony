@@ -2,7 +2,6 @@ const Command = require("../structures/Command.js");
 const fs = require("fs");
 const ytdl = require("ytdl-core")
 const { AudioResource, AudioPlayerStatus, StreamType } = require("@discordjs/voice");
-const { stringify } = require("querystring");
 
 module.exports = new Command({
     name: "music",
@@ -112,11 +111,12 @@ const options = {
         description: "Shows all titles in the queue.",
         method: function(message, complements, client) {
 
-            let messageBody = "*>*" + client.audio.queue.currentTrack.metadata.title + "\n";
+            const current = client.audio.queue.currentTrack.metadata.title ?? " ";
+            let messageBody = "*>*" + current + "\n";
 
             for (let i = 0; i < client.audio.queue.length; i++) {
-                const item = client.audio.queue.peek(i);
-                messageBody = messageBody + (item.metadata.title + "\n");
+                const item = client.audio.queue.peek(i).metadata.title ?? " ";
+                messageBody = messageBody + (item + "\n");
             }
 
             let queueMessage = ["\`\`\`", messageBody, "\`\`\`"].join("");
@@ -176,9 +176,9 @@ const options = {
 
 
     shuffle: {
-        async: false,
+        async: true,
         description: "Shuffles the Queue",
-        method: function(message, complements, client) {
+        method: async (message, complements, client) => {
             client.audio.queue.shuffle();
             const showQueue = options["queue"].method;
             showQueue(message, complements, client);
