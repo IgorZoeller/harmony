@@ -4,6 +4,15 @@ const Queue = require("./Queue.js")
 const Discord = require("discord.js");
 const fs = require("fs");
 
+// class AudioObject {
+//     constructor(src) {
+//         this.sourcePath = src
+//         this.stream = null;
+//         this.resource = null;
+//     }
+// }
+
+
 const AudioQueueStatus = {
     Empty: "empty",
     Ready: "ready"
@@ -21,11 +30,11 @@ class AudioQueue extends Queue {
 
     }
 
-    async shuffle(){
+    shuffle(){
         console.log("Will shuffle queue.");
         // Durstenfeld shuffle algorithm.
         for (let i = this.headIndex + (this.length - 1); i > this.headIndex; i--) {
-            let j = Math.floor(Math.random() * (i + 1))
+            let j = Math.floor(Math.random() * (i + 1));
             [this.items[i], this.items[j]] = [this.items[j], this.items[i]];
         }
     }

@@ -38,6 +38,7 @@ class Queue {
       get isEmpty() {
         return this.headIndex == this.tailIndex;
       }
+
 }
 
 module.exports = Queue;
