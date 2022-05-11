@@ -10,7 +10,7 @@ client.start(process.env.CLIENT_TOKEN)
 
 let awaitingCommand = true;
 
-client.on("ready", () => console.log("Harmonic convergence is upon us!"));
+client.on("ready", () => console.log("Harmonic convergence is upon us! " + Date()));
 
 client.on("messageCreate", message => {
     if (!message.content.startsWith(config.prefix)) return;

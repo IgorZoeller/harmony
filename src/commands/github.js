@@ -4,7 +4,7 @@ module.exports = new Command({
     name: "github",
     description: "URL to Harmony's GitHub repository.",
     run: run,
-    status: run
+    status: null
 })
 
 async function run(message, args, client) {
