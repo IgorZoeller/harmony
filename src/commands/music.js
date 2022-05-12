@@ -1,13 +1,13 @@
 const Command = require("../structures/Command.js");
 const fs = require("fs");
 const ytdl = require("ytdl-core")
-const { createAudioResource, AudioPlayerStatus, StreamType } = require("@discordjs/voice");
+const { AudioResource, AudioPlayerStatus, StreamType } = require("@discordjs/voice");
 
 module.exports = new Command({
     name: "music",
     description: "Plays songs",
     run: run,
-    status: retrieveStatus
+    status: null
 })
 
 function run(message, args, client) {
@@ -26,18 +26,16 @@ function run(message, args, client) {
 
 }
 
-function retrieveStatus(message, args, client) {
-
-    let run = options["help"].method;
-
-    run(message, args, client);
-    
-}
-
 const options = {
 
+    test: {
+        description: "test",
+        method: function(message, complements, client) {
+
+        }
+    },
+    
     connect: {
-        async: false,
         description: "Connects to the user current voice channel.",
         method: function(message, complements, client) {
         
@@ -51,7 +49,6 @@ const options = {
 
     
     play: {
-        async: true,
         description: "Plays the audio requested.",
         method: async (message, complements, client) => {
         
@@ -68,44 +65,50 @@ const options = {
             let song;
             let optionalData;
             if ( ytdl.validateURL(yt_url) ) {
-                const videoID = ytdl.getURLVideoID(yt_url);
-                const basicInfo = await ytdl.getBasicInfo(yt_url);
-                optionalData = {title: basicInfo.videoDetails.title};
-                // Filtering the formats to audio only.
-                const info = await ytdl.getInfo(videoID);
-                let audioFormats = ytdl.filterFormats(info.formats, 'audioonly')
-                const format = ytdl.chooseFormat(audioFormats, { quality: "highestaudio" });
-
                 try {
-                    song = ytdl(yt_url, { format });
-                } catch (error) {
-                    console.error(error);
+                    const videoID = ytdl.getURLVideoID(yt_url);
+                    const basicInfo = await ytdl.getBasicInfo(yt_url);
+                    optionalData = {title: basicInfo.videoDetails.title};
+                    // Filtering the formats to audio only.
+                    const info = await ytdl.getInfo(videoID);
+                    let audioFormats = ytdl.filterFormats(info.formats, 'audioonly')
+                    let format = ytdl.chooseFormat(audioFormats, { quality: "highestaudio" });
+
+                    
+                    song = ytdl(yt_url, {
+                            format,
+                            highWaterMark: 1<<25
+                        });
+                } catch(err) {
+                    console.error(err);
                 }
-                
+
             } else {
                 return message.reply("Invalid URL. Please try again.")
             }
 
             const new_resource = await client.audio.probeAndCreateResource(song, optionalData);
 
-            client.audio.queue.enqueue(new_resource);
-            message.reply(`${client.audio.queue.length} items in queue.`);
+            const queueLength = client.audio.queue.enqueue(new_resource);
+            message.reply(`${queueLength} items in queue.`);
 
         }
     },
 
 
     queue: {
-        async: false,
         description: "Shows all titles in the queue.",
         method: function(message, complements, client) {
 
-            let messageBody = "";
+            if (client.audio.queue.isEmpty) {
+                return message.reply("Queue is empty.");
+            }
+            const current = client.audio.queue.currentTrack.metadata.title;
+            let messageBody = "> " + current + "\n";
 
             for (let i = 0; i < client.audio.queue.length; i++) {
-                const item = client.audio.queue.peek(i);
-                messageBody = messageBody + (item.metadata.title + "\n");
-                console.log(item.metadata.title);             
+                const item = client.audio.queue.peek(i).metadata.title;
+                messageBody = messageBody + (item + "\n");
             }
 
             let queueMessage = ["\`\`\`", messageBody, "\`\`\`"].join("");
@@ -117,7 +120,6 @@ const options = {
 
 
     pause: {
-        async: false,
         description: "Pauses the currently active Queue",
         method: function(message, complements, client) {
             client.audio.player.pause();
@@ -128,7 +130,6 @@ const options = {
     },
 
     resume: {
-        async: false,
         description: "Resumes the currently active Queue",
         method: function(message, complements, client) {
             client.audio.player.unpause();
@@ -140,15 +141,23 @@ const options = {
 
 
     skip: {
-        async: false,
         description: "Skips to the next audio resource in Queue",
         method: function(message, complements, client) {
-            debugMessage = `Skipping the next ${complements[0]} songs.`;
+            const songsToSkip = int(complements[0]) ?? 1;
+            let debugMessage;
+
+            if (songsToSkip == 1) {
+                debugMessage = `Skipping the next song.`;
+            } else if (songsToSkip > 1) {
+                debugMessage = `Skipping the next ${songsToSkip} songs.`;
+            }
+
             message.reply(debugMessage);
             console.log(debugMessage);
-            for (let i = 0; i < int(complements[0]); i++) {
+            for (let i = 0; i < songsToSkip; i++) {
                 client.audio.queue.dequeue();
             }
+
             client.audio.player.pause();
             client.audio.player.emit(AudioPlayerStatus.Idle);
         }
@@ -156,9 +165,8 @@ const options = {
 
 
     shuffle: {
-        async: false,
         description: "Shuffles the Queue",
-        method: function(message, complements, client) {
+        method: async (message, complements, client) => {
             client.audio.queue.shuffle();
             const showQueue = options["queue"].method;
             showQueue(message, complements, client);
@@ -167,7 +175,6 @@ const options = {
 
 
     clear: {
-        async: false,
         description: "Clears all audio resources at the Queue",
         method: function(message, complements, client) {
             client.audio.queue.clear();
@@ -176,7 +183,6 @@ const options = {
 
 
     disconnect: {
-        async: false,
         description: "Disconnects from the user current voice channel.",
         method: function(message, complements, client) {
             const channel = message.member.voice.channel;
@@ -185,14 +191,13 @@ const options = {
                 client.audio.clearConnection(channel.guild.id);
                 client.audio.queue.clear();
             } else {
-                console.log(`Attempted to disconnect from channel ${channel.guild.id} but wasn't connected in the first place.`)
+                console.log(`Attempted to disconnect from channel ${channel.guild.id} but I wasn't connected in the first place.`)
             }
         }
     },
 
 
     help: {
-        async: false,
         description: "Shows this message.",
         method: function(message, complements, client) {
 

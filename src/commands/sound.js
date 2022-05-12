@@ -16,7 +16,7 @@ module.exports = new Command({
     name: "sound",
     description: "Plays a short sound effect.",
     run: run,
-    status: run 
+    status: null 
 })
 
 async function run(message, args, client) {
